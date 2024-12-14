@@ -1,17 +1,15 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket} from "ws";
 const wss = new WebSocketServer({port: 8080}); 
 
-let allSockets = []; 
+let allSockets = new Map<number, WebSocket>(); 
 
-wss.on("connection", (socket)=>{
-    allSockets.push(socket); 
-    console.log("User Connected")
+wss.on("connection", (socket: WebSocket)=>{
+    console.log(socket); 
     let userCount = 0; 
     socket.on("message", (message)=>{
-        allSockets.forEach((item)=>{
-            if(item != socket){
-                item.send(message.toString() + " : Sent from the server")
-            }
-        })
+        const parsedMessage = JSON.parse(message.toString()); 
+        userCount++; 
+        allSockets.set(userCount, socket); 
+        socket.send(`Message Received: ${parsedMessage.payload.message}`)
     })
 })
